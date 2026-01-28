@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://4j882nsb4sl8"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pfwgy"]
+bg_color = Color(0.431373, 0.431373, 0.431373, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1bgyi"]
+bg_color = Color(0.917647, 0.917647, 0.917647, 1)
+
+[node name="Button" type="Button"]
+offset_right = 8.0
+offset_bottom = 8.0
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_pfwgy")
+theme_override_styles/hover = SubResource("StyleBoxFlat_pfwgy")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_1bgyi")
+toggle_mode = true

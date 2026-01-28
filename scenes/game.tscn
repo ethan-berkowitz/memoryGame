@@ -1,0 +1,98 @@
+[gd_scene load_steps=6 format=3 uid="uid://ia2w8e818ih2"]
+
+[ext_resource type="PackedScene" uid="uid://4j882nsb4sl8" path="res://scenes/grid_button.tscn" id="1_j75om"]
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_ooi14"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fvhv3"]
+bg_color = Color(0, 0.541176, 0.321569, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v4rtc"]
+bg_color = Color(0, 0.403922, 0.235294, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tnwdg"]
+bg_color = Color(0, 0.235294, 0.129412, 1)
+
+[node name="Game" type="Node2D"]
+
+[node name="Main" type="Node2D" parent="."]
+script = ExtResource("1_ooi14")
+
+[node name="GridButtons" type="Node2D" parent="Main"]
+
+[node name="Button1" parent="Main/GridButtons" instance=ExtResource("1_j75om")]
+offset_left = -104.0
+offset_top = -144.0
+offset_right = -40.0
+offset_bottom = -80.0
+
+[node name="Button2" parent="Main/GridButtons" instance=ExtResource("1_j75om")]
+offset_left = -32.0
+offset_top = -144.0
+offset_right = 32.0
+offset_bottom = -80.0
+
+[node name="Button3" parent="Main/GridButtons" instance=ExtResource("1_j75om")]
+offset_left = 40.0
+offset_top = -144.0
+offset_right = 104.0
+offset_bottom = -80.0
+
+[node name="Button4" parent="Main/GridButtons" instance=ExtResource("1_j75om")]
+offset_left = -104.0
+offset_top = -72.0
+offset_right = -40.0
+offset_bottom = -8.0
+
+[node name="Button5" parent="Main/GridButtons" instance=ExtResource("1_j75om")]
+offset_left = -32.0
+offset_top = -72.0
+offset_right = 32.0
+offset_bottom = -8.0
+
+[node name="Button6" parent="Main/GridButtons" instance=ExtResource("1_j75om")]
+offset_left = 40.0
+offset_top = -72.0
+offset_right = 104.0
+offset_bottom = -8.0
+
+[node name="Button7" parent="Main/GridButtons" instance=ExtResource("1_j75om")]
+offset_left = -104.0
+offset_right = -40.0
+offset_bottom = 64.0
+
+[node name="Button8" parent="Main/GridButtons" instance=ExtResource("1_j75om")]
+offset_left = -32.0
+offset_right = 32.0
+offset_bottom = 64.0
+
+[node name="Button9" parent="Main/GridButtons" instance=ExtResource("1_j75om")]
+offset_left = 40.0
+offset_right = 104.0
+offset_bottom = 64.0
+
+[node name="PlayButton" type="Button" parent="Main"]
+offset_left = -104.0
+offset_top = 72.0
+offset_right = -40.0
+offset_bottom = 136.0
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_fvhv3")
+theme_override_styles/hover = SubResource("StyleBoxFlat_v4rtc")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_tnwdg")
+
+[node name="Labels" type="Node" parent="Main"]
+
+[node name="StatusLabel" type="Label" parent="Main/Labels"]
+offset_left = 8.0
+offset_top = 96.0
+offset_right = 96.0
+offset_bottom = 122.0
+
+[node name="RoundLabel" type="Label" parent="Main/Labels"]
+offset_left = -256.0
+offset_top = -144.0
+offset_right = -168.0
+offset_bottom = -118.0
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(1.99, 1.99)
