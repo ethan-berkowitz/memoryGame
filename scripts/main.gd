@@ -41,22 +41,15 @@ var		patterns_index := 0
 var		current_pattern_size := 0
 
 # Colors
-const		default_col := Color.WHITE
-const		wrong_col := Color.RED
-const		correct_col := Color.SEA_GREEN
+const		col_pressed := Color.WHITE
+const		col_wrong := Color.INDIAN_RED
+const		col_correct := Color.GRAY
+const		col_normal := Color(0.431, 0.431, 0.431)
 
 func _ready():
 	rng.randomize()
 	buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9]
 	all_clickable(false)
-	
-
-	#set_all_button_colors(Color.GREEN)
-	#set_one_button_color(b1, Color.GREEN)
-	
-
-#func set_all_button_colors(color):
-#	b1.get_theme_stylebox("pressed").bg_color = color
 	
 func set_one_button_color(button: Button, color: Color):
 	var style_dup := button.get_theme_stylebox("pressed").duplicate()
@@ -68,8 +61,6 @@ func set_all_button_colors(color: Color):
 		var style_dup := button.get_theme_stylebox("pressed").duplicate()
 		style_dup.bg_color = color
 		button.add_theme_stylebox_override("pressed", style_dup)
-
-	
 
 func _process(delta):
 	if Input.is_action_just_pressed("R"):
@@ -83,7 +74,7 @@ func _process(delta):
 				state = states.ROUND_START
 		states.ROUND_START:
 			all_clickable(false)
-			set_all_button_colors(default_col)
+			set_all_button_colors(col_pressed)
 			status_label.text = "Get ready!"			
 			round_label.text = "Round " + str(round_num)
 			patterns_index = 0
@@ -100,6 +91,7 @@ func _process(delta):
 			display_patterns(delta)
 		states.SETUP_INPUT:
 			all_clickable(true)
+			set_all_button_colors(col_normal)
 			disable_pattern()
 			current_pattern_size = get_pattern_size()
 			state = states.CHECK_INPUT
@@ -159,6 +151,7 @@ func check_player_input():
 			# Compare with current pattern
 			if patterns[patterns_index][i]:
 				num_correct += 1
+				set_one_button_color(buttons[i], col_pressed)
 				if num_correct == current_pattern_size:
 					patterns_index += 1
 					if patterns_index < patterns.size():
@@ -167,13 +160,16 @@ func check_player_input():
 						round_num += 1
 						state = states.ROUND_START
 			else:
+				set_one_button_color(buttons[i], col_wrong)
+				reveal_correct_pattern()
 				state = states.GAMEOVER
-				set_one_button_color(buttons[i], wrong_col)
+				break
 
-#func is_leftmb_held_down(i):
-#	if buttons[i].is_hovered() and Input.is_action_pressed("LEFT_MOUSE_BUTTON"):
-#		return true
-#	return false
+func reveal_correct_pattern():
+	for i in grid_size:
+		if patterns[patterns_index][i] and !buttons[i].button_pressed:
+			set_one_button_color(buttons[i], col_correct)
+			buttons[i].button_pressed = true
 
 func get_pattern_size():
 	var size := 0;
