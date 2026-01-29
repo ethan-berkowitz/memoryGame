@@ -13,19 +13,26 @@ extends Node2D
 @onready var play_button: Button = $PlayButton
 
 @onready var status_label: Label = $Labels/StatusLabel
-@onready var round_label: Label = $Labels/RoundLabel
+@onready var round_label: Label = $Labels/ScoreLabel
 
 # General
 const	grid_size := 9
-enum	states {START, ROUND_START, GAMEOVER, SETUP_INPUT, CHECK_INPUT, DISPLAY, ADD_RANDOM_PATTERN}
+enum	states {START,
+				ROUND_START,
+				ADD_RANDOM_PATTERN,
+				DISPLAY,
+				SETUP_INPUT,
+				CHECK_INPUT,
+				CORRECT_PATTERN,
+				GAMEOVER}
 var		buttons: Array[Button] = []
 var		rng := RandomNumberGenerator.new()
-var		round_num := 1
+var		score := 0
 var		state := states.START
+var		timer := 0.0
 
 # Round Start
 var		round_start_rate := 1
-var		round_start_timer := 0.0
 
 # Display
 enum	ds_states {START, DISPLAY_TIMER, IN_BETWEEN, LAST_TIMER}
@@ -33,7 +40,7 @@ var		ds_state := ds_states.START
 var		display_rate := 1
 var		display_in_between_rate := 0.1
 var		display_last_rate := 1.5
-var		ds_timer := 0.0
+var		correct_pattern_rate := 0.5
 
 # Patterns
 var		patterns = []
@@ -43,7 +50,8 @@ var		current_pattern_size := 0
 # Colors
 const		col_pressed := Color.WHITE
 const		col_wrong := Color.INDIAN_RED
-const		col_correct := Color.GRAY
+const		col_reveal := Color.GRAY
+const		col_correct := Color.SEA_GREEN
 const		col_normal := Color(0.431, 0.431, 0.431)
 
 func _ready():
@@ -51,16 +59,6 @@ func _ready():
 	buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9]
 	all_clickable(false)
 	
-func set_one_button_color(button: Button, color: Color):
-	var style_dup := button.get_theme_stylebox("pressed").duplicate()
-	style_dup.bg_color = color
-	button.add_theme_stylebox_override("pressed", style_dup)
-	
-func set_all_button_colors(color: Color):
-	for button in buttons:
-		var style_dup := button.get_theme_stylebox("pressed").duplicate()
-		style_dup.bg_color = color
-		button.add_theme_stylebox_override("pressed", style_dup)
 
 func _process(delta):
 	if Input.is_action_just_pressed("R"):
@@ -69,6 +67,7 @@ func _process(delta):
 	match state:
 		states.START:
 			play_button.text = "Play"
+			round_label.text = "Score: " + str(score)
 			if play_button.button_pressed or Input.is_action_just_pressed("C"):
 				play_button.hide()
 				state = states.ROUND_START
@@ -76,12 +75,12 @@ func _process(delta):
 			all_clickable(false)
 			set_all_button_colors(col_pressed)
 			status_label.text = "Get ready!"			
-			round_label.text = "Round " + str(round_num)
+			round_label.text = "Score: " + str(score)
 			patterns_index = 0
 			disable_pattern()
-			round_start_timer += delta
-			if round_start_timer >= round_start_rate:
-				round_start_timer = 0
+			timer += delta
+			if timer >= round_start_rate:
+				timer = 0
 				state = states.ADD_RANDOM_PATTERN
 		states.ADD_RANDOM_PATTERN:
 			status_label.text = ""
@@ -97,6 +96,15 @@ func _process(delta):
 			state = states.CHECK_INPUT
 		states.CHECK_INPUT:
 			check_player_input()
+		states.CORRECT_PATTERN:
+			timer += delta
+			if timer >= correct_pattern_rate:
+				timer = 0
+				if patterns_index < patterns.size():
+					state = states.SETUP_INPUT
+				else:
+					score += 1
+					state = states.ROUND_START
 		states.GAMEOVER:
 			all_clickable(false)
 			play_button.text = "Restart"
@@ -106,10 +114,10 @@ func _process(delta):
 				reset_game()
 
 func display_patterns(delta):
-	ds_timer += delta
+	timer += delta
 	match ds_state:
 		ds_states.START:
-			ds_timer = 0
+			timer = 0
 			patterns_index = 0
 			activate_pattern(patterns[patterns_index])
 			if patterns.size() == 1:
@@ -117,13 +125,13 @@ func display_patterns(delta):
 			else:
 				ds_state = ds_states.DISPLAY_TIMER
 		ds_states.DISPLAY_TIMER:
-			if ds_timer >= display_rate:
-				ds_timer = 0
+			if timer >= display_rate:
+				timer = 0
 				disable_pattern()
 				ds_state = ds_states.IN_BETWEEN
 		ds_states.IN_BETWEEN:
-			if ds_timer >= display_in_between_rate:
-				ds_timer = 0
+			if timer >= display_in_between_rate:
+				timer = 0
 				patterns_index += 1
 				activate_pattern(patterns[patterns_index])
 				if patterns_index == patterns.size() - 1:
@@ -131,14 +139,14 @@ func display_patterns(delta):
 				else:
 					ds_state = ds_states.DISPLAY_TIMER
 		ds_states.LAST_TIMER:
-			if ds_timer >= display_last_rate:
-				ds_timer = 0
+			if timer >= display_last_rate:
+				timer = 0
 				patterns_index = 0
 				ds_state = ds_states.START
 				state = states.SETUP_INPUT
 
 func reset_game():
-	round_num = 1
+	score = 0
 	patterns.clear()
 	state = states.ROUND_START
 
@@ -154,21 +162,24 @@ func check_player_input():
 				set_one_button_color(buttons[i], col_pressed)
 				if num_correct == current_pattern_size:
 					patterns_index += 1
-					if patterns_index < patterns.size():
-						state = states.SETUP_INPUT
-					else:
-						round_num += 1
-						state = states.ROUND_START
+					highlight_correct_pattern()
+					state = states.CORRECT_PATTERN
+					break
 			else:
 				set_one_button_color(buttons[i], col_wrong)
 				reveal_correct_pattern()
 				state = states.GAMEOVER
 				break
 
+func highlight_correct_pattern():
+	for button in buttons:
+		if button.button_pressed:
+			set_one_button_color(button, col_correct)
+
 func reveal_correct_pattern():
 	for i in grid_size:
 		if patterns[patterns_index][i] and !buttons[i].button_pressed:
-			set_one_button_color(buttons[i], col_correct)
+			set_one_button_color(buttons[i], col_reveal)
 			buttons[i].button_pressed = true
 
 func get_pattern_size():
@@ -177,7 +188,6 @@ func get_pattern_size():
 		if p:
 			size += 1
 	return size
-
 
 func all_clickable(status):
 	for b in buttons:
@@ -209,3 +219,13 @@ func disable_pattern():
 		buttons[i].button_pressed = true
 		buttons[i].button_pressed = false
 
+func set_one_button_color(button: Button, color: Color):
+	var style_dup := button.get_theme_stylebox("pressed").duplicate()
+	style_dup.bg_color = color
+	button.add_theme_stylebox_override("pressed", style_dup)
+	
+func set_all_button_colors(color: Color):
+	for button in buttons:
+		var style_dup := button.get_theme_stylebox("pressed").duplicate()
+		style_dup.bg_color = color
+		button.add_theme_stylebox_override("pressed", style_dup)
