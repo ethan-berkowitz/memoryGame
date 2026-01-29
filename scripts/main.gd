@@ -13,7 +13,9 @@ extends Node2D
 @onready var play_button: Button = $PlayButton
 
 @onready var status_label: Label = $Labels/StatusLabel
-@onready var round_label: Label = $Labels/ScoreLabel
+@onready var score_label: Label = $Labels/ScoreLabel
+@onready var highscore_label = $Labels/HighscoreLabel
+
 
 # General
 const	grid_size := 9
@@ -28,6 +30,7 @@ enum	states {START,
 var		buttons: Array[Button] = []
 var		rng := RandomNumberGenerator.new()
 var		score := 0
+var 	highscore := 0
 var		state := states.START
 var		timer := 0.0
 
@@ -40,7 +43,7 @@ var		ds_state := ds_states.START
 var		display_rate := 1
 var		display_in_between_rate := 0.1
 var		display_last_rate := 1.5
-var		correct_pattern_rate := 0.5
+var		correct_pattern_rate := 0.2
 
 # Patterns
 var		patterns = []
@@ -49,16 +52,16 @@ var		current_pattern_size := 0
 
 # Colors
 const		col_pressed := Color.WHITE
-const		col_wrong := Color.INDIAN_RED
-const		col_reveal := Color.GRAY
-const		col_correct := Color.SEA_GREEN
+const		col_wrong := Color(0.914, 0.247, 0.106)
+const		col_reveal := Color.DARK_GRAY
+const		col_correct := Color(0.267, 0.773, 0.4)
 const		col_normal := Color(0.431, 0.431, 0.431)
+const		alpha_play_button := 0.2
 
 func _ready():
 	rng.randomize()
 	buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9]
 	all_clickable(false)
-	
 
 func _process(delta):
 	if Input.is_action_just_pressed("R"):
@@ -66,16 +69,17 @@ func _process(delta):
 
 	match state:
 		states.START:
-			play_button.text = "Play"
-			round_label.text = "Score: " + str(score)
+			display_score(score_label, score)
+			display_highscore()
 			if play_button.button_pressed or Input.is_action_just_pressed("C"):
-				play_button.hide()
+				play_button.disabled = true
 				state = states.ROUND_START
 		states.ROUND_START:
 			all_clickable(false)
 			set_all_button_colors(col_pressed)
 			status_label.text = "Get ready!"			
-			round_label.text = "Score: " + str(score)
+			display_score(score_label, score)
+			display_highscore()
 			patterns_index = 0
 			disable_pattern()
 			timer += delta
@@ -107,11 +111,30 @@ func _process(delta):
 					state = states.ROUND_START
 		states.GAMEOVER:
 			all_clickable(false)
-			play_button.text = "Restart"
-			play_button.show()
+			play_button.disabled = false
 			if play_button.button_pressed:
-				play_button.hide()
+				play_button.disabled = true
 				reset_game()
+
+func display_score(label, num):
+	var str := ""
+	if score < 10:
+		str = "000" + str(num)
+	elif score < 100:
+		str = "00" + str(num)
+	elif score < 1000:
+		str = "0" + str(num)
+	else:
+		str = str(num)
+	label.text = str
+	
+func display_highscore():
+	if (score > highscore):
+		highscore = score
+		display_score(highscore_label, highscore)
+	
+
+
 
 func display_patterns(delta):
 	timer += delta

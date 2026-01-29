@@ -1,21 +1,28 @@
-[gd_scene load_steps=6 format=3 uid="uid://ia2w8e818ih2"]
+[gd_scene load_steps=8 format=3 uid="uid://ia2w8e818ih2"]
 
 [ext_resource type="PackedScene" uid="uid://4j882nsb4sl8" path="res://scenes/grid_button.tscn" id="1_j75om"]
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_ooi14"]
+[ext_resource type="Texture2D" uid="uid://c8i7mwvycq1yc" path="res://assets/button_border.png" id="3_ifrhc"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fvhv3"]
-bg_color = Color(0, 0.541176, 0.321569, 1)
+bg_color = Color(0.196078, 0.482353, 0.270588, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v4rtc"]
-bg_color = Color(0, 0.403922, 0.235294, 1)
+bg_color = Color(0.196078, 0.388235, 0.247059, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tnwdg"]
-bg_color = Color(0, 0.235294, 0.129412, 1)
+bg_color = Color(0.196078, 0.482353, 0.270588, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cemhp"]
+bg_color = Color(0.188235, 0.294118, 0.215686, 1)
 
 [node name="Game" type="Node2D"]
 
 [node name="Main" type="Node2D" parent="."]
 script = ExtResource("1_ooi14")
+
+[node name="buttonBorder" type="Sprite2D" parent="Main"]
+texture = ExtResource("3_ifrhc")
 
 [node name="GridButtons" type="Node2D" parent="Main"]
 
@@ -74,14 +81,18 @@ offset_right = 104.0
 offset_bottom = 104.0
 
 [node name="PlayButton" type="Button" parent="Main"]
-offset_left = -32.0
-offset_top = 112.0
-offset_right = 32.0
-offset_bottom = 176.0
+offset_left = 40.0
+offset_top = -127.0
+offset_right = 104.0
+offset_bottom = -112.0
 focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 10
 theme_override_styles/normal = SubResource("StyleBoxFlat_fvhv3")
 theme_override_styles/hover = SubResource("StyleBoxFlat_v4rtc")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_tnwdg")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_cemhp")
+text = "Play"
 
 [node name="Labels" type="Node" parent="Main"]
 
@@ -92,10 +103,37 @@ offset_right = 48.0
 offset_bottom = 154.0
 
 [node name="ScoreLabel" type="Label" parent="Main/Labels"]
-offset_left = -256.0
-offset_top = -144.0
-offset_right = -168.0
-offset_bottom = -118.0
+offset_left = -128.0
+offset_top = -131.0
+offset_right = -40.0
+offset_bottom = -105.0
+text = "0000"
+horizontal_alignment = 2
+
+[node name="HighscoreLabel" type="Label" parent="Main/Labels"]
+offset_left = -56.0
+offset_top = -131.0
+offset_right = 32.0
+offset_bottom = -105.0
+text = "0000"
+horizontal_alignment = 2
+
+[node name="ScoreNameLabel" type="Label" parent="Main/Labels"]
+offset_left = -104.0
+offset_top = -131.0
+offset_right = -16.0
+offset_bottom = -105.0
+theme_override_font_sizes/font_size = 9
+text = "score"
+
+[node name="HighscoreNameLabel" type="Label" parent="Main/Labels"]
+offset_left = -32.0
+offset_top = -131.0
+offset_right = 56.0
+offset_bottom = -105.0
+theme_override_font_sizes/font_size = 9
+text = "best"
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(1.71, 1.71)
+position = Vector2(0, -12)
+zoom = Vector2(2.39, 2.39)
