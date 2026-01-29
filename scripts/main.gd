@@ -24,15 +24,15 @@ var		round_num := 1
 var		state := states.START
 
 # Round Start
-var		round_start_rate := 0.5
+var		round_start_rate := 1
 var		round_start_timer := 0.0
 
 # Display
-enum	ds_states {START, DISPLAY, IN_BETWEEN, LAST_PATTERN}
+enum	ds_states {START, DISPLAY_TIMER, IN_BETWEEN, LAST_TIMER}
 var		ds_state := ds_states.START
 var		display_rate := 1
-var		display_in_between_rate := 0.2
-var		display_last_pattern_rate := 1.5
+var		display_in_between_rate := 0.1
+var		display_last_rate := 1.5
 var		ds_timer := 0.0
 
 # Patterns
@@ -40,14 +40,39 @@ var		patterns = []
 var		patterns_index := 0
 var		current_pattern_size := 0
 
+# Colors
+const		default_col := Color.WHITE
+const		wrong_col := Color.RED
+const		correct_col := Color.SEA_GREEN
+
 func _ready():
 	rng.randomize()
 	buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9]
 	all_clickable(false)
+	
+
+	#set_all_button_colors(Color.GREEN)
+	#set_one_button_color(b1, Color.GREEN)
+	
+
+#func set_all_button_colors(color):
+#	b1.get_theme_stylebox("pressed").bg_color = color
+	
+func set_one_button_color(button: Button, color: Color):
+	var style_dup := button.get_theme_stylebox("pressed").duplicate()
+	style_dup.bg_color = color
+	button.add_theme_stylebox_override("pressed", style_dup)
+	
+func set_all_button_colors(color: Color):
+	for button in buttons:
+		var style_dup := button.get_theme_stylebox("pressed").duplicate()
+		style_dup.bg_color = color
+		button.add_theme_stylebox_override("pressed", style_dup)
+
+	
 
 func _process(delta):
 	if Input.is_action_just_pressed("R"):
-		print("Restart Game")
 		get_tree().reload_current_scene()
 
 	match state:
@@ -58,37 +83,25 @@ func _process(delta):
 				state = states.ROUND_START
 		states.ROUND_START:
 			all_clickable(false)
+			set_all_button_colors(default_col)
 			status_label.text = "Get ready!"			
 			round_label.text = "Round " + str(round_num)
 			patterns_index = 0
 			disable_pattern()
-			
 			round_start_timer += delta
 			if round_start_timer >= round_start_rate:
 				round_start_timer = 0
 				state = states.ADD_RANDOM_PATTERN
-			
 		states.ADD_RANDOM_PATTERN:
-			print("ADD_RANDOM_PATTERN")
 			status_label.text = ""
 			patterns.append(generate_random_pattern())
 			state = states.DISPLAY
 		states.DISPLAY:
-			ds_timer -= delta
-			if ds_timer <= 0:
-				ds_timer = display_rate
-				if patterns_index < patterns.size():
-					activate_pattern(patterns[patterns_index])
-					patterns_index += 1
-				else:
-					patterns_index = 0
-					disable_pattern()
-					state = states.SETUP_INPUT
+			display_patterns(delta)
 		states.SETUP_INPUT:
 			all_clickable(true)
 			disable_pattern()
 			current_pattern_size = get_pattern_size()
-			print("Pattern size= " + str(current_pattern_size))
 			state = states.CHECK_INPUT
 		states.CHECK_INPUT:
 			check_player_input()
@@ -97,9 +110,40 @@ func _process(delta):
 			play_button.text = "Restart"
 			play_button.show()
 			if play_button.button_pressed:
-				print("Restart Button Pressed")
 				play_button.hide()
 				reset_game()
+
+func display_patterns(delta):
+	ds_timer += delta
+	match ds_state:
+		ds_states.START:
+			ds_timer = 0
+			patterns_index = 0
+			activate_pattern(patterns[patterns_index])
+			if patterns.size() == 1:
+				ds_state = ds_states.LAST_TIMER
+			else:
+				ds_state = ds_states.DISPLAY_TIMER
+		ds_states.DISPLAY_TIMER:
+			if ds_timer >= display_rate:
+				ds_timer = 0
+				disable_pattern()
+				ds_state = ds_states.IN_BETWEEN
+		ds_states.IN_BETWEEN:
+			if ds_timer >= display_in_between_rate:
+				ds_timer = 0
+				patterns_index += 1
+				activate_pattern(patterns[patterns_index])
+				if patterns_index == patterns.size() - 1:
+					ds_state = ds_states.LAST_TIMER
+				else:
+					ds_state = ds_states.DISPLAY_TIMER
+		ds_states.LAST_TIMER:
+			if ds_timer >= display_last_rate:
+				ds_timer = 0
+				patterns_index = 0
+				ds_state = ds_states.START
+				state = states.SETUP_INPUT
 
 func reset_game():
 	round_num = 1
@@ -116,18 +160,15 @@ func check_player_input():
 			if patterns[patterns_index][i]:
 				num_correct += 1
 				if num_correct == current_pattern_size:
-					print("PATTERN COMPLETE")
 					patterns_index += 1
 					if patterns_index < patterns.size():
 						state = states.SETUP_INPUT
 					else:
-						print("ROUND COMPLETE")
 						round_num += 1
-						print("Next Round = " + str(round_num))
 						state = states.ROUND_START
 			else:
 				state = states.GAMEOVER
-				print("Wrong")
+				set_one_button_color(buttons[i], wrong_col)
 
 #func is_leftmb_held_down(i):
 #	if buttons[i].is_hovered() and Input.is_action_pressed("LEFT_MOUSE_BUTTON"):
