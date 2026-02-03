@@ -1,8 +1,13 @@
-[gd_scene load_steps=8 format=3 uid="uid://ia2w8e818ih2"]
+[gd_scene load_steps=13 format=3 uid="uid://ia2w8e818ih2"]
 
 [ext_resource type="PackedScene" uid="uid://4j882nsb4sl8" path="res://scenes/grid_button.tscn" id="1_j75om"]
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_ooi14"]
 [ext_resource type="Texture2D" uid="uid://c8i7mwvycq1yc" path="res://assets/button_border.png" id="3_ifrhc"]
+[ext_resource type="AudioStream" uid="uid://djeuaoqt1bp3n" path="res://sounds/play.mp3" id="4_ukpt3"]
+[ext_resource type="AudioStream" uid="uid://bx6c78qybku6p" path="res://sounds/correct_pattern.mp3" id="5_k3mih"]
+[ext_resource type="AudioStream" uid="uid://c3ioepov6rgn5" path="res://sounds/wrong.mp3" id="6_hv2mo"]
+[ext_resource type="AudioStream" uid="uid://dps83dp8tnulv" path="res://sounds/select.mp3" id="7_ksrxp"]
+[ext_resource type="AudioStream" uid="uid://r243u3crc3aq" path="res://sounds/sequence_complete.mp3" id="8_5tvrg"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fvhv3"]
 bg_color = Color(0.196078, 0.482353, 0.270588, 1)
@@ -21,7 +26,8 @@ bg_color = Color(0.188235, 0.294118, 0.215686, 1)
 [node name="Main" type="Node2D" parent="."]
 script = ExtResource("1_ooi14")
 
-[node name="buttonBorder" type="Sprite2D" parent="Main"]
+[node name="boardBackground" type="Sprite2D" parent="Main"]
+z_index = -1
 texture = ExtResource("3_ifrhc")
 
 [node name="GridButtons" type="Node2D" parent="Main"]
@@ -81,10 +87,10 @@ offset_right = 104.0
 offset_bottom = 104.0
 
 [node name="PlayButton" type="Button" parent="Main"]
-offset_left = 40.0
-offset_top = -127.0
-offset_right = 104.0
-offset_bottom = -112.0
+offset_left = -150.0
+offset_top = -128.0
+offset_right = -119.0
+offset_bottom = -97.0
 focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 10
@@ -96,18 +102,23 @@ text = "Play"
 
 [node name="Labels" type="Node" parent="Main"]
 
-[node name="StatusLabel" type="Label" parent="Main/Labels"]
-offset_left = -40.0
-offset_top = 128.0
-offset_right = 48.0
-offset_bottom = 154.0
-
 [node name="ScoreLabel" type="Label" parent="Main/Labels"]
 offset_left = -128.0
 offset_top = -131.0
 offset_right = -40.0
 offset_bottom = -105.0
 text = "0000"
+horizontal_alignment = 2
+
+[node name="StatusLabel" type="Label" parent="Main/Labels"]
+offset_left = 33.0
+offset_top = -128.0
+offset_right = 104.0
+offset_bottom = -102.0
+theme_override_constants/line_spacing = -4
+theme_override_font_sizes/font_size = 7
+text = "new
+sequence"
 horizontal_alignment = 2
 
 [node name="HighscoreLabel" type="Label" parent="Main/Labels"]
@@ -133,6 +144,31 @@ offset_right = 56.0
 offset_bottom = -105.0
 theme_override_font_sizes/font_size = 9
 text = "best"
+
+[node name="StatusNameLabel" type="Label" parent="Main/Labels"]
+offset_left = 40.0
+offset_top = -131.0
+offset_right = 128.0
+offset_bottom = -105.0
+theme_override_font_sizes/font_size = 9
+text = "status"
+
+[node name="Sounds" type="Node2D" parent="Main"]
+
+[node name="snd_play" type="AudioStreamPlayer2D" parent="Main/Sounds"]
+stream = ExtResource("4_ukpt3")
+
+[node name="snd_correct_pattern" type="AudioStreamPlayer2D" parent="Main/Sounds"]
+stream = ExtResource("5_k3mih")
+
+[node name="snd_wrong" type="AudioStreamPlayer2D" parent="Main/Sounds"]
+stream = ExtResource("6_hv2mo")
+
+[node name="snd_select" type="AudioStreamPlayer2D" parent="Main/Sounds"]
+stream = ExtResource("7_ksrxp")
+
+[node name="snd_sequence_complete" type="AudioStreamPlayer2D" parent="Main/Sounds"]
+stream = ExtResource("8_5tvrg")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(0, -12)

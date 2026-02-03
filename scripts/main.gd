@@ -9,13 +9,18 @@ extends Node2D
 @onready var b7: Button = $GridButtons/Button7
 @onready var b8: Button = $GridButtons/Button8
 @onready var b9: Button = $GridButtons/Button9
-
 @onready var play_button: Button = $PlayButton
 
-@onready var status_label: Label = $Labels/StatusLabel
-@onready var score_label: Label = $Labels/ScoreLabel
-@onready var highscore_label = $Labels/HighscoreLabel
 
+@onready var highscore_label = $Labels/HighscoreLabel
+@onready var score_label: Label = $Labels/ScoreLabel
+@onready var status_label: Label = $Labels/StatusLabel
+
+@onready var snd_correct_pattern: AudioStreamPlayer2D = $Sounds/snd_correct_pattern
+@onready var snd_play: AudioStreamPlayer2D = $Sounds/snd_play
+@onready var snd_select: AudioStreamPlayer2D = $Sounds/snd_select
+@onready var snd_wrong: AudioStreamPlayer2D = $Sounds/snd_wrong
+@onready var snd_sequence_complete = $Sounds/snd_sequence_complete
 
 # General
 const	grid_size := 9
@@ -43,20 +48,27 @@ var		ds_state := ds_states.START
 var		display_rate := 1
 var		display_in_between_rate := 0.1
 var		display_last_rate := 1.5
-var		correct_pattern_rate := 0.2
+var		correct_pattern_rate := 1
 
 # Patterns
 var		patterns = []
 var		patterns_index := 0
 var		current_pattern_size := 0
 
+# Status
+const	txt_round_start := "loading\ngame"
+const	txt_display := "new\nsequence"
+const 	txt_input := "enter\npattern(s)"
+const	txt_correct := "pattern\ncomplete"
+const	txt_wrong := "gameover\ntry again"
+const 	txt_complete := "sequence\ncomplete"
+
 # Colors
-const		col_pressed := Color.WHITE
+const		col_pressed := Color(0.91, 0.91, 0.91)
 const		col_wrong := Color(0.914, 0.247, 0.106)
 const		col_reveal := Color.DARK_GRAY
 const		col_correct := Color(0.267, 0.773, 0.4)
 const		col_normal := Color(0.431, 0.431, 0.431)
-const		alpha_play_button := 0.2
 
 func _ready():
 	rng.randomize()
@@ -66,18 +78,19 @@ func _ready():
 func _process(delta):
 	if Input.is_action_just_pressed("R"):
 		get_tree().reload_current_scene()
-
+		
 	match state:
 		states.START:
 			display_score(score_label, score)
 			display_highscore()
 			if play_button.button_pressed or Input.is_action_just_pressed("C"):
+				snd_play.play()
 				play_button.disabled = true
 				state = states.ROUND_START
 		states.ROUND_START:
 			all_clickable(false)
 			set_all_button_colors(col_pressed)
-			status_label.text = "Get ready!"			
+			status_label.text = txt_round_start			
 			display_score(score_label, score)
 			display_highscore()
 			patterns_index = 0
@@ -87,15 +100,16 @@ func _process(delta):
 				timer = 0
 				state = states.ADD_RANDOM_PATTERN
 		states.ADD_RANDOM_PATTERN:
-			status_label.text = ""
 			patterns.append(generate_random_pattern())
 			state = states.DISPLAY
 		states.DISPLAY:
 			display_patterns(delta)
 		states.SETUP_INPUT:
+			status_label.text = txt_input
 			all_clickable(true)
 			set_all_button_colors(col_normal)
 			disable_pattern()
+			reset_button_correct()
 			current_pattern_size = get_pattern_size()
 			state = states.CHECK_INPUT
 		states.CHECK_INPUT:
@@ -114,7 +128,12 @@ func _process(delta):
 			play_button.disabled = false
 			if play_button.button_pressed:
 				play_button.disabled = true
+				snd_play.play()
 				reset_game()
+
+func reset_button_correct():
+	for i in grid_size:
+		buttons[i].correct = false
 
 func display_score(label, num):
 	var str := ""
@@ -132,9 +151,6 @@ func display_highscore():
 	if (score > highscore):
 		highscore = score
 		display_score(highscore_label, highscore)
-	
-
-
 
 func display_patterns(delta):
 	timer += delta
@@ -142,6 +158,7 @@ func display_patterns(delta):
 		ds_states.START:
 			timer = 0
 			patterns_index = 0
+			status_label.text = txt_display
 			activate_pattern(patterns[patterns_index])
 			if patterns.size() == 1:
 				ds_state = ds_states.LAST_TIMER
@@ -174,25 +191,43 @@ func reset_game():
 	state = states.ROUND_START
 
 func check_player_input():
-	var num_correct := 0
 	for i in grid_size:
-		if buttons[i].button_pressed:
+		if buttons[i].button_pressed and !buttons[i].correct:
+			# Activate press animation
+			#buttons[i].press_animation = true
 			# Disable clicking the button off again
 			buttons[i].mouse_filter = Control.MOUSE_FILTER_IGNORE
 			# Compare with current pattern
 			if patterns[patterns_index][i]:
-				num_correct += 1
+				buttons[i].correct = true
 				set_one_button_color(buttons[i], col_pressed)
-				if num_correct == current_pattern_size:
+				if is_pattern_complete():
 					patterns_index += 1
 					highlight_correct_pattern()
+					status_label.text = txt_correct
+					if patterns_index < patterns.size():
+						status_label.text = txt_correct
+						snd_correct_pattern.play()
+					else:
+						status_label.text = txt_complete
+						snd_sequence_complete.play()						
 					state = states.CORRECT_PATTERN
 					break
+				else:
+					snd_select.play()
 			else:
 				set_one_button_color(buttons[i], col_wrong)
 				reveal_correct_pattern()
+				snd_wrong.play()
+				status_label.text = txt_wrong
 				state = states.GAMEOVER
 				break
+
+func is_pattern_complete():
+	for i in grid_size:
+		if buttons[i].correct != patterns[patterns_index][i]:
+			return false
+	return true
 
 func highlight_correct_pattern():
 	for button in buttons:
@@ -227,10 +262,23 @@ func generate_random_pattern():
 		for i in grid_size:
 			temp.append(rng.randi() % 2 == 0)
 		# Check for at least one true statment
-		for boolean in temp:
-			if boolean:
+		for i in grid_size:
+			if temp[i]:
 				valid = true
 				break
+		# Check for duplicate pattern
+		if valid and score < 512:
+			for pattern in patterns:
+				var duplicate = true
+				for i in grid_size:
+					if temp[i] != pattern[i]:
+						duplicate = false
+						break
+				if duplicate:
+					valid = false
+					break
+		if !valid:
+			temp.clear()
 	return temp
 
 func activate_pattern(pattern):
@@ -239,7 +287,7 @@ func activate_pattern(pattern):
 		
 func disable_pattern():
 	for i in grid_size:
-		buttons[i].button_pressed = true
+		#buttons[i].button_pressed = true
 		buttons[i].button_pressed = false
 
 func set_one_button_color(button: Button, color: Color):

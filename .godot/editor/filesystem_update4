@@ -1,3 +1,4 @@
 res://scenes/game.tscn
-res://scripts/main.gd
 res://scenes/grid_button.tscn
+res://scripts/main.gd
+res://scripts/color_dots.gd
