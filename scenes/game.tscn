@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://ia2w8e818ih2"]
+[gd_scene load_steps=17 format=3 uid="uid://ia2w8e818ih2"]
 
 [ext_resource type="PackedScene" uid="uid://4j882nsb4sl8" path="res://scenes/grid_button.tscn" id="1_j75om"]
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_ooi14"]
@@ -10,16 +10,28 @@
 [ext_resource type="AudioStream" uid="uid://r243u3crc3aq" path="res://sounds/sequence_complete.mp3" id="8_5tvrg"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fvhv3"]
-bg_color = Color(0.196078, 0.482353, 0.270588, 1)
+bg_color = Color(0.243137, 0.588235, 0.333333, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v4rtc"]
-bg_color = Color(0.196078, 0.388235, 0.247059, 1)
+bg_color = Color(0.203922, 0.501961, 0.282353, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tnwdg"]
 bg_color = Color(0.196078, 0.482353, 0.270588, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cemhp"]
 bg_color = Color(0.188235, 0.294118, 0.215686, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_iylu7"]
+bg_color = Color(0.913725, 0.247059, 0.105882, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kf17h"]
+bg_color = Color(0.85098, 0.227451, 0.101961, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tbums"]
+bg_color = Color(0.329412, 0.207843, 0.184314, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ac306"]
+bg_color = Color(0.490196, 0.164706, 0.0980392, 1)
 
 [node name="Game" type="Node2D"]
 
@@ -99,6 +111,21 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_v4rtc")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_tnwdg")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_cemhp")
 text = "Play"
+
+[node name="MuteButton" type="Button" parent="Main"]
+offset_left = -150.0
+offset_top = -83.0
+offset_right = -119.0
+offset_bottom = -52.0
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 10
+theme_override_styles/normal = SubResource("StyleBoxFlat_iylu7")
+theme_override_styles/hover = SubResource("StyleBoxFlat_kf17h")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_tbums")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_ac306")
+toggle_mode = true
+text = "Mute"
 
 [node name="Labels" type="Node" parent="Main"]
 

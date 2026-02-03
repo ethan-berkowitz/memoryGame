@@ -10,7 +10,7 @@ extends Node2D
 @onready var b8: Button = $GridButtons/Button8
 @onready var b9: Button = $GridButtons/Button9
 @onready var play_button: Button = $PlayButton
-
+@onready var mute_button: Button = $MuteButton
 
 @onready var highscore_label = $Labels/HighscoreLabel
 @onready var score_label: Label = $Labels/ScoreLabel
@@ -40,15 +40,18 @@ var		state := states.START
 var		timer := 0.0
 
 # Round Start
-var		round_start_rate := 1
+const	round_start_rate := 1
 
 # Display
 enum	ds_states {START, DISPLAY_TIMER, IN_BETWEEN, LAST_TIMER}
+const	starting_display_rate := 1.0
+const 	min_display_rate := 0.25
+const	change_display_rate	:= 0.05
+const	display_in_between_rate := 0.25
+const	display_last_rate := 1.25
+const	correct_pattern_rate := 0.4
 var		ds_state := ds_states.START
-var		display_rate := 1
-var		display_in_between_rate := 0.1
-var		display_last_rate := 1.5
-var		correct_pattern_rate := 1
+var		display_rate := starting_display_rate
 
 # Patterns
 var		patterns = []
@@ -78,6 +81,12 @@ func _ready():
 func _process(delta):
 	if Input.is_action_just_pressed("R"):
 		get_tree().reload_current_scene()
+	if mute_button.button_pressed:
+		var bus_idx = AudioServer.get_bus_index("Master")
+		AudioServer.set_bus_mute(bus_idx, true)
+	else:
+		var bus_idx = AudioServer.get_bus_index("Master")
+		AudioServer.set_bus_mute(bus_idx, false)
 		
 	match state:
 		states.START:
@@ -187,6 +196,7 @@ func display_patterns(delta):
 
 func reset_game():
 	score = 0
+	display_rate = starting_display_rate
 	patterns.clear()
 	state = states.ROUND_START
 
@@ -202,16 +212,7 @@ func check_player_input():
 				buttons[i].correct = true
 				set_one_button_color(buttons[i], col_pressed)
 				if is_pattern_complete():
-					patterns_index += 1
-					highlight_correct_pattern()
-					status_label.text = txt_correct
-					if patterns_index < patterns.size():
-						status_label.text = txt_correct
-						snd_correct_pattern.play()
-					else:
-						status_label.text = txt_complete
-						snd_sequence_complete.play()						
-					state = states.CORRECT_PATTERN
+					input_pattern_complete()
 					break
 				else:
 					snd_select.play()
@@ -222,6 +223,20 @@ func check_player_input():
 				status_label.text = txt_wrong
 				state = states.GAMEOVER
 				break
+
+func input_pattern_complete():
+	patterns_index += 1
+	highlight_correct_pattern()
+	status_label.text = txt_correct
+	if patterns_index < patterns.size():
+		status_label.text = txt_correct
+		snd_correct_pattern.play()
+	else:
+		status_label.text = txt_complete
+		snd_sequence_complete.play()
+	if display_rate > min_display_rate:
+		display_rate -= change_display_rate		
+	state = states.CORRECT_PATTERN
 
 func is_pattern_complete():
 	for i in grid_size:
