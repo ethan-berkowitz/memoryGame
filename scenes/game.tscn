@@ -180,6 +180,16 @@ offset_bottom = -105.0
 theme_override_font_sizes/font_size = 9
 text = "status"
 
+[node name="PR09" type="Label" parent="Main/Labels"]
+offset_left = -178.0
+offset_top = 92.0
+offset_right = -90.0
+offset_bottom = 118.0
+theme_override_colors/font_color = Color(0.580392, 0.580392, 0.580392, 1)
+theme_override_font_sizes/font_size = 9
+text = "PR-09"
+horizontal_alignment = 1
+
 [node name="Sounds" type="Node2D" parent="Main"]
 
 [node name="snd_play" type="AudioStreamPlayer2D" parent="Main/Sounds"]

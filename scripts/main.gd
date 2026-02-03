@@ -86,8 +86,7 @@ func _process(delta):
 		AudioServer.set_bus_mute(bus_idx, true)
 	else:
 		var bus_idx = AudioServer.get_bus_index("Master")
-		AudioServer.set_bus_mute(bus_idx, false)
-		
+		AudioServer.set_bus_mute(bus_idx, false)	
 	match state:
 		states.START:
 			display_score(score_label, score)
