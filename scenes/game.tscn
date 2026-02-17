@@ -1,9 +1,10 @@
-[gd_scene load_steps=17 format=3 uid="uid://ia2w8e818ih2"]
+[gd_scene load_steps=19 format=3 uid="uid://ia2w8e818ih2"]
 
 [ext_resource type="PackedScene" uid="uid://4j882nsb4sl8" path="res://scenes/grid_button.tscn" id="1_j75om"]
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_ooi14"]
 [ext_resource type="Texture2D" uid="uid://c8i7mwvycq1yc" path="res://assets/button_border.png" id="3_ifrhc"]
 [ext_resource type="AudioStream" uid="uid://djeuaoqt1bp3n" path="res://sounds/play.mp3" id="4_ukpt3"]
+[ext_resource type="Script" path="res://scripts/input_name.gd" id="4_xcyja"]
 [ext_resource type="AudioStream" uid="uid://bx6c78qybku6p" path="res://sounds/correct_pattern.mp3" id="5_k3mih"]
 [ext_resource type="AudioStream" uid="uid://c3ioepov6rgn5" path="res://sounds/wrong.mp3" id="6_hv2mo"]
 [ext_resource type="AudioStream" uid="uid://dps83dp8tnulv" path="res://sounds/select.mp3" id="7_ksrxp"]
@@ -32,6 +33,8 @@ bg_color = Color(0.360784, 0.27451, 0.258824, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ac306"]
 bg_color = Color(0.490196, 0.164706, 0.0980392, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_gunnc"]
 
 [node name="Game" type="Node2D"]
 
@@ -112,6 +115,21 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_tnwdg")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_cemhp")
 text = "Play"
 
+[node name="SubmitButton" type="Button" parent="Main"]
+visible = false
+offset_left = 125.0
+offset_top = 59.0
+offset_right = 206.0
+offset_bottom = 78.0
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 10
+theme_override_styles/normal = SubResource("StyleBoxFlat_fvhv3")
+theme_override_styles/hover = SubResource("StyleBoxFlat_v4rtc")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_tnwdg")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_cemhp")
+text = "New High Score!"
+
 [node name="MuteButton" type="Button" parent="Main"]
 offset_left = -150.0
 offset_top = -83.0
@@ -144,8 +162,7 @@ offset_right = 104.0
 offset_bottom = -102.0
 theme_override_constants/line_spacing = -4
 theme_override_font_sizes/font_size = 7
-text = "new
-sequence"
+text = "off"
 horizontal_alignment = 2
 
 [node name="HighscoreLabel" type="Label" parent="Main/Labels"]
@@ -190,6 +207,108 @@ theme_override_font_sizes/font_size = 9
 text = "PR-09"
 horizontal_alignment = 1
 
+[node name="LeaderboardTitle" type="Label" parent="Main/Labels"]
+offset_left = 126.0
+offset_top = -129.0
+offset_right = 207.0
+offset_bottom = -21.0
+theme_override_font_sizes/font_size = 11
+text = "Leaderboard"
+horizontal_alignment = 1
+
+[node name="LeaderboardInfo" type="Label" parent="Main/Labels"]
+offset_left = 125.0
+offset_top = 61.0
+offset_right = 206.0
+offset_bottom = 78.0
+theme_override_font_sizes/font_size = 9
+text = "-----"
+horizontal_alignment = 1
+
+[node name="LeaderboardEnterName" type="Label" parent="Main/Labels"]
+visible = false
+offset_left = 127.0
+offset_top = 90.0
+offset_right = 191.0
+offset_bottom = 109.0
+theme_override_font_sizes/font_size = 7
+text = "Enter Initials"
+
+[node name="LeaderboardPlace" type="Label" parent="Main/Labels"]
+offset_left = 124.0
+offset_top = -112.0
+offset_right = 144.0
+offset_bottom = 78.0
+theme_override_constants/line_spacing = 1
+theme_override_font_sizes/font_size = 9
+text = "#
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10"
+horizontal_alignment = 1
+
+[node name="LeaderboardName" type="Label" parent="Main/Labels"]
+offset_left = 122.0
+offset_top = -112.0
+offset_right = 203.0
+offset_bottom = 93.0
+theme_override_colors/font_color = Color(0.913725, 0.247059, 0.105882, 1)
+theme_override_constants/line_spacing = 1
+theme_override_font_sizes/font_size = 9
+text = "name
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-"
+horizontal_alignment = 1
+
+[node name="LeaderboardScore" type="Label" parent="Main/Labels"]
+offset_left = 180.0
+offset_top = -112.0
+offset_right = 204.0
+offset_bottom = 78.0
+theme_override_colors/font_color = Color(0.298039, 0.729412, 0.415686, 1)
+theme_override_constants/line_spacing = 1
+theme_override_font_sizes/font_size = 9
+text = "score
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0"
+horizontal_alignment = 1
+
+[node name="InputName" type="LineEdit" parent="Main/Labels"]
+offset_left = 125.0
+offset_top = 87.0
+offset_right = 206.0
+offset_bottom = 107.0
+theme_override_font_sizes/font_size = 9
+theme_override_styles/normal = SubResource("StyleBoxEmpty_gunnc")
+placeholder_text = "-----"
+alignment = 1
+max_length = 3
+caret_blink = true
+script = ExtResource("4_xcyja")
+
 [node name="Sounds" type="Node2D" parent="Main"]
 
 [node name="snd_play" type="AudioStreamPlayer2D" parent="Main/Sounds"]
@@ -207,7 +326,9 @@ stream = ExtResource("7_ksrxp")
 [node name="snd_sequence_complete" type="AudioStreamPlayer2D" parent="Main/Sounds"]
 stream = ExtResource("8_5tvrg")
 
+[node name="HTTPRequest" type="HTTPRequest" parent="Main"]
+
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2(0, -12)
+position = Vector2(48, -11)
 offset = Vector2(-21.61, 2.08165e-12)
 zoom = Vector2(2.5, 2.5)

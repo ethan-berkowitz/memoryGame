@@ -9,18 +9,26 @@ extends Node2D
 @onready var b7: Button = $GridButtons/Button7
 @onready var b8: Button = $GridButtons/Button8
 @onready var b9: Button = $GridButtons/Button9
+
 @onready var play_button: Button = $PlayButton
 @onready var mute_button: Button = $MuteButton
 
 @onready var highscore_label = $Labels/HighscoreLabel
 @onready var score_label: Label = $Labels/ScoreLabel
 @onready var status_label: Label = $Labels/StatusLabel
+@onready var leaderboard_name: Label = $Labels/LeaderboardName
+@onready var leaderboard_score:Label = $Labels/LeaderboardScore
+@onready var leaderboard_info = $Labels/LeaderboardInfo
+
+@onready var input_name = $Labels/InputName
 
 @onready var snd_correct_pattern: AudioStreamPlayer2D = $Sounds/snd_correct_pattern
 @onready var snd_play: AudioStreamPlayer2D = $Sounds/snd_play
 @onready var snd_select: AudioStreamPlayer2D = $Sounds/snd_select
 @onready var snd_wrong: AudioStreamPlayer2D = $Sounds/snd_wrong
 @onready var snd_sequence_complete = $Sounds/snd_sequence_complete
+
+@onready var http_request = $HTTPRequest
 
 # General
 const	grid_size := 9
@@ -31,13 +39,18 @@ enum	states {START,
 				SETUP_INPUT,
 				CHECK_INPUT,
 				CORRECT_PATTERN,
+				LEADERBOARD_ENTRY,
 				GAMEOVER}
 var		buttons: Array[Button] = []
 var		rng := RandomNumberGenerator.new()
 var		score := 0
 var 	highscore := 0
+var		last_highscore := 0
 var		state := states.START
 var		timer := 0.0
+
+# Http requests
+var		last_request := ""
 
 # Round Start
 const	round_start_rate := 1
@@ -63,8 +76,9 @@ const	txt_round_start := "loading\ngame"
 const	txt_display := "new\nsequence"
 const 	txt_input := "enter\npattern(s)"
 const	txt_correct := "pattern\ncomplete"
-const	txt_wrong := "gameover\ntry again"
+const	txt_wrong := "gameover\nplay again?"
 const 	txt_complete := "sequence\ncomplete"
+const	txt_leaderboard := "new\nhighscore"
 
 # Colors
 const		col_pressed := Color(0.91, 0.91, 0.91)
@@ -77,10 +91,15 @@ func _ready():
 	rng.randomize()
 	buttons = [b1, b2, b3, b4, b5, b6, b7, b8, b9]
 	all_clickable(false)
+	
+	
+
+	
+	# Connect HTTPRequest signal
+	http_request.request_completed.connect(self._http_request_completed)
+	get_scores()
 
 func _process(delta):
-	if Input.is_action_just_pressed("R"):
-		get_tree().reload_current_scene()
 	if mute_button.button_pressed:
 		var bus_idx = AudioServer.get_bus_index("Master")
 		AudioServer.set_bus_mute(bus_idx, true)
@@ -91,7 +110,7 @@ func _process(delta):
 		states.START:
 			display_score(score_label, score)
 			display_highscore()
-			if play_button.button_pressed or Input.is_action_just_pressed("C"):
+			if play_button.button_pressed:
 				snd_play.play()
 				play_button.disabled = true
 				state = states.ROUND_START
@@ -131,29 +150,113 @@ func _process(delta):
 				else:
 					score += 1
 					state = states.ROUND_START
+		states.LEADERBOARD_ENTRY:
+			if input_name.text.length() == 3:
+				leaderboard_info.text = "hit enter!"
+				if Input.is_action_just_pressed("Enter"):
+					submit_score(input_name.text, score)
+					input_name.text = ""
+					input_name.release_focus()
+					play_button.disabled = false
+					leaderboard_info.text = "-----"
+					input_name.placeholder_text = "-----"
+					status_label.text = txt_wrong
+			if play_button.button_pressed:
+				play_after_gameover()
 		states.GAMEOVER:
 			all_clickable(false)
+			if score > last_highscore:
+				input_name.grab_focus()
+				leaderboard_info.text = "new highscore!"
+				input_name.placeholder_text = "type initials (3)"
+				status_label.text = txt_leaderboard
+				state = states.LEADERBOARD_ENTRY
+				return
+			status_label.text = txt_wrong
 			play_button.disabled = false
 			if play_button.button_pressed:
-				play_button.disabled = true
-				snd_play.play()
-				reset_game()
+				play_after_gameover()
+
+func play_after_gameover():
+	play_button.disabled = true
+	snd_play.play()
+	reset_game()
+
+func submit_score(player_name: String, submissionScore: int):
+	last_request = "POST"
+	
+	var url = "https://patternrecall-default-rtdb.europe-west1.firebasedatabase.app/messages.json"
+	var body = JSON.stringify({
+		"name": player_name,
+		"score": submissionScore,
+		"timestamp": Time.get_unix_time_from_system()
+	})
+
+	http_request.request(
+		url,
+		["Content-Type: application/json"],
+		HTTPClient.METHOD_POST,
+		body
+	)
+	
+func get_scores():
+	last_request = "GET"
+	var url = "https://patternrecall-default-rtdb.europe-west1.firebasedatabase.app/messages.json?orderBy=%22score%22&limitToLast=10"
+	http_request.request(url)
+
+func _http_request_completed(_result, _response_code, _headers, body):
+	if last_request == "POST":
+		print("Score posted. Now requesting leaderboard")
+		get_scores()
+	else:
+		var text = body.get_string_from_utf8()
+		var data = JSON.parse_string(text)
+		if data == null or not data is Dictionary:
+			print("No leaderboard data or parse error")
+			return
+		update_leaderboard(data)
+
+func update_leaderboard(data):
+	# Convert dict to array for sorting
+	var entries = []
+	for key in data.keys():
+		entries.append(data[key])
+	
+	# Sort by score desc, then timestamp asc on ties
+	entries.sort_custom(func(a, b):
+		if a["score"] != b["score"]:
+			return a["score"] > b["score"]
+		return a["timestamp"] < b["timestamp"]
+	)
+	
+	# Update the text on the leaderboard
+	var name_str = "name\n"
+	var score_str = "score\n"
+	for entry in entries:
+		name_str += str(entry["name"]) + "\n"
+		score_str += str(entry["score"]) + "\n"
+	leaderboard_name.text = name_str
+	leaderboard_score.text = score_str
+	
+	# Store the last_high_score
+	if entries.size() == 10:
+		last_highscore = entries[entries.size() - 1]["score"]
 
 func reset_button_correct():
 	for i in grid_size:
 		buttons[i].correct = false
 
 func display_score(label, num):
-	var str := ""
+	var temp := ""
 	if score < 10:
-		str = "000" + str(num)
+		temp = "000" + str(num)
 	elif score < 100:
-		str = "00" + str(num)
+		temp = "00" + str(num)
 	elif score < 1000:
-		str = "0" + str(num)
+		temp = "0" + str(num)
 	else:
-		str = str(num)
-	label.text = str
+		temp = str(num)
+	label.text = temp
 	
 func display_highscore():
 	if (score > highscore):
@@ -219,7 +322,6 @@ func check_player_input():
 				set_one_button_color(buttons[i], col_wrong)
 				reveal_correct_pattern()
 				snd_wrong.play()
-				status_label.text = txt_wrong
 				state = states.GAMEOVER
 				break
 
@@ -283,12 +385,12 @@ func generate_random_pattern():
 		# Check for duplicate pattern
 		if valid and score < 512:
 			for pattern in patterns:
-				var duplicate = true
+				var dup = true
 				for i in grid_size:
 					if temp[i] != pattern[i]:
-						duplicate = false
+						dup = false
 						break
-				if duplicate:
+				if dup:
 					valid = false
 					break
 		if !valid:

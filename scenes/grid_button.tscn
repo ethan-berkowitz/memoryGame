@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://4j882nsb4sl8"]
 
-[ext_resource type="Script" path="res://scenes/grid_button.gd" id="1_e5ebw"]
+[ext_resource type="Script" path="res://scripts/grid_button.gd" id="1_j6tqo"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pfwgy"]
 bg_color = Color(0.431373, 0.431373, 0.431373, 1)
@@ -17,4 +17,4 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_pfwgy")
 theme_override_styles/hover = SubResource("StyleBoxFlat_pfwgy")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_1bgyi")
 toggle_mode = true
-script = ExtResource("1_e5ebw")
+script = ExtResource("1_j6tqo")

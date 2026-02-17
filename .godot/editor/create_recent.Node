@@ -1,3 +1,7 @@
+LineEdit
+Label
+RichTextLabel
+HTTPRequest
 Node2D
 CanvasLayer
 AudioStreamPlayer2D
