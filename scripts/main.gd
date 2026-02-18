@@ -27,6 +27,7 @@ extends Node2D
 @onready var snd_select: AudioStreamPlayer2D = $Sounds/snd_select
 @onready var snd_wrong: AudioStreamPlayer2D = $Sounds/snd_wrong
 @onready var snd_sequence_complete = $Sounds/snd_sequence_complete
+@onready var snd_submit_score = $Sounds/snd_submit_score
 
 @onready var http_request = $HTTPRequest
 
@@ -110,7 +111,7 @@ func _process(delta):
 		states.START:
 			display_score(score_label, score)
 			display_highscore()
-			if play_button.button_pressed:
+			if play_button.button_pressed or Input.is_action_just_pressed("play_key"):
 				snd_play.play()
 				play_button.disabled = true
 				state = states.ROUND_START
@@ -161,7 +162,7 @@ func _process(delta):
 					leaderboard_info.text = "-----"
 					input_name.placeholder_text = "-----"
 					status_label.text = txt_wrong
-			if play_button.button_pressed:
+			elif (play_button.button_pressed or Input.is_action_just_pressed("play_key")):
 				play_after_gameover()
 		states.GAMEOVER:
 			all_clickable(false)
@@ -174,7 +175,7 @@ func _process(delta):
 				return
 			status_label.text = txt_wrong
 			play_button.disabled = false
-			if play_button.button_pressed:
+			if play_button.button_pressed or Input.is_action_just_pressed("play_key"):
 				play_after_gameover()
 
 func play_after_gameover():
@@ -183,6 +184,7 @@ func play_after_gameover():
 	reset_game()
 
 func submit_score(player_name: String, submissionScore: int):
+	snd_submit_score.play()
 	last_request = "POST"
 	
 	var url = "https://patternrecall-default-rtdb.europe-west1.firebasedatabase.app/messages.json"
@@ -303,6 +305,9 @@ func reset_game():
 	state = states.ROUND_START
 
 func check_player_input():
+	check_keyboard_input()
+	if Input.is_action_just_pressed("R"):
+		score += 1
 	for i in grid_size:
 		if buttons[i].button_pressed and !buttons[i].correct:
 			# Activate press animation
@@ -324,6 +329,28 @@ func check_player_input():
 				snd_wrong.play()
 				state = states.GAMEOVER
 				break
+
+func check_keyboard_input():
+	if Input.is_action_just_pressed("b1_key"):
+		buttons[0].button_pressed = true
+	if Input.is_action_just_pressed("b2_key"):
+		buttons[1].button_pressed = true
+	if Input.is_action_just_pressed("b3_key"):
+		buttons[2].button_pressed = true
+	if Input.is_action_just_pressed("b4_key"):
+		buttons[3].button_pressed = true
+	if Input.is_action_just_pressed("b5_key"):
+		buttons[4].button_pressed = true
+	if Input.is_action_just_pressed("b6_key"):
+		buttons[5].button_pressed = true
+	if Input.is_action_just_pressed("b7_key"):
+		buttons[6].button_pressed = true
+	if Input.is_action_just_pressed("b8_key"):
+		buttons[7].button_pressed = true
+	if Input.is_action_just_pressed("b9_key"):
+		buttons[8].button_pressed = true
+	if Input.is_action_just_pressed("play_key"):
+		play_button.button_pressed = true
 
 func input_pattern_complete():
 	patterns_index += 1

@@ -1,8 +1,8 @@
-LineEdit
 Label
+Node2D
+LineEdit
 RichTextLabel
 HTTPRequest
-Node2D
 CanvasLayer
 AudioStreamPlayer2D
 Sprite2D
